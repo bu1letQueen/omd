@@ -1,0 +1,29 @@
+Команда:
+coverage run -m unittest -v test_what_is_year_now.py
+
+Результат:
+
+test_dmy_format (test_5.TestWhatIsYearNow.test_dmy_format)
+Формат DD.MM.YYYY -- год извлекается корректно ... ok
+test_invalid_format (test_5.TestWhatIsYearNow.test_invalid_format)
+Не совпадает с двумя форматами выше, выдаем ValueError ... ok
+test_invalid_format_no_separators (test_5.TestWhatIsYearNow.test_invalid_format_no_separators)
+Строка без разделителей должна вызвать ValueError ... ok
+test_ymd_format (test_5.TestWhatIsYearNow.test_ymd_format)
+Формат YYYY-MM-DD -- все работает ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.003s
+
+OK
+
+Команда:
+coverage report
+
+Пример (замени на свой реальный вывод):
+Name                  Stmts   Miss  Cover
+-----------------------------------------
+test_5.py                38      1    97%
+what_is_year_now.py      24      4    83%
+-----------------------------------------
+TOTAL                    62      5    92%

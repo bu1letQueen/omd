@@ -10,7 +10,7 @@
 2. Запуск doctest
 Для запуска тестов необходимо выполнить команду:
 
-    python3 -m doctest -o ELLIPSIS -v morse.py
+    python3 -m doctest -o ELLIPSIS -v task-1/task_1.py
 
 Пояснение:
  - ключ -m doctest запускает модуль doctest;
@@ -24,4 +24,4 @@
     3 passed and 0 failed.
 
 4. Сохранение результата
-Вывод работы doctest был сохранён в файл result.txt.
+Вывод работы doctest был сохранён в файл task-1/result_task1.txt

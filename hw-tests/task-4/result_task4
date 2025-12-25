@@ -1,0 +1,9 @@
+Команда выполнения тестов:
+pytest -v
+
+test_4.py::test_two_categories PASSED                                       [ 25%]
+test_4.py::test_duplicates_same_vector PASSED                               [ 50%]
+test_4.py::test_iterable_argument_list PASSED                               [ 75%]
+test_4.py::test_no_arguments PASSED                                         [100%]
+
+================================ 4 passed in 0.01s ================================

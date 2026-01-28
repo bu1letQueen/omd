@@ -66,7 +66,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    # 1. Распаковка данных (твои строки 3-6)
     users_cross = update.callback_query.data
     field = context.user_data['keyboard_state']
     users_row = int(users_cross[0])
@@ -84,7 +83,6 @@ async def game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 
     # Проверка победы игрока
     if won(field):
-        reply_markup = InlineKeyboardMarkup(generate_keyboard(field))
         await update.callback_query.edit_message_text("You won!", reply_markup=restart_markup)
 
         return FINISH_GAME
@@ -96,9 +94,10 @@ async def game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.callback_query.edit_message_text("Draw!", reply_markup=restart_markup)
         return FINISH_GAME
 
-    # ХОД БОТА
-    bot_row, bot_col = random.choice(empty_cells)
-    field[bot_row][bot_col] = ZERO
+    best_move = get_best_move(field)
+    if best_move:
+        bot_row, bot_col = best_move
+        field[bot_row][bot_col] = ZERO
 
     # Проверка победы Бота
     if won(field):
@@ -115,28 +114,71 @@ async def game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     return CONTINUE_GAME
 
 
-def won(fields: list[str]) -> bool:
-    row_x = [CROSS] * 3
-    row_o = [ZERO] * 3
+def check_win_sim(board, player):
+    """Проверяет, выиграл ли кто-то и кто именно"""
 
-    if row_x in fields or row_o in fields:
-        return True
+    for i in range(3):
+        if all([board[i][j] == player for j in range(3)]): return True
+        if all([board[j][i] == player for j in range(3)]): return True
 
-    for col in range(3):
-        current_column = [fields[row][col] for row in range(3)]
-
-        if current_column == row_x or current_column == row_o:
-            return True
-
-    main_diagonal = [fields[diag][diag] for diag in range(3)]
-    sub_diagonal = [fields[diag][(2 - diag) % 3] for diag in range(2, -1, -1)]
-
-    if (main_diagonal == row_o or main_diagonal == row_x
-        or sub_diagonal == row_o or sub_diagonal == row_x):
-        return True
-
+    if board[0][0] == board[1][1] == board[2][2] == player: return True
+    if board[0][2] == board[1][1] == board[2][0] == player: return True
     return False
 
+
+def won(fields: list[str]) -> bool:
+    return check_win_sim(fields, CROSS) or check_win_sim(fields, ZERO)
+
+def find_optimal_move(board, depth, bots_turn):
+    if check_win_sim(board, ZERO): return 10 - depth
+    if check_win_sim(board, CROSS): return depth - 10
+    if not any(FREE_SPACE in row for row in board): return 0
+
+    if bots_turn:
+        best_score = -float('inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == FREE_SPACE:
+                    board[row][col] = ZERO
+                    score = find_optimal_move(board, depth+1, False)
+                    board[row][col] = FREE_SPACE
+                    best_score = max(score, best_score)
+        return best_score
+
+    else:
+        best_score = float('inf')
+        for row in range(3):
+            for col in range(3):
+                if board[row][col] == FREE_SPACE:
+                    board[row][col] = CROSS
+                    score = find_optimal_move(board, depth+1, True)
+                    board[row][col] = FREE_SPACE
+                    best_score = min(best_score, score)
+        return best_score
+
+
+def get_best_move(board):
+    best_score = -float('inf')
+    move = None
+
+    empty_cells = [(row, col) for row in range(3) for col in range(3) if board[row][col] == FREE_SPACE]
+    if len(empty_cells) == 9:
+        return (1, 1)
+    if len(empty_cells) == 8 and board[1][1] == FREE_SPACE:
+        return (1, 1)
+
+    for row in range(3):
+        for col in range(3):
+            if board[row][col] == FREE_SPACE:
+                board[row][col] = ZERO
+                score = find_optimal_move(board, 0, False)
+                board[row][col] = FREE_SPACE
+
+                if score > best_score:
+                    best_score = score
+                    move = (row, col)
+
+    return move
 
 
 async def end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
